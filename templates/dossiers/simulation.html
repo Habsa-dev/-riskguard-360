@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Simulation de Prêt - RiskGuard 360{% endblock %}
+{% block page_title %}<i class="bi bi-calculator"></i> Simulation de Prêt{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Formulaire -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-sliders"></i> Paramètres de la simulation
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Montant du prêt (FCFA) *</label>
+                        <input type="number" name="montant" class="form-control form-control-lg"
+                               value="{{ request.POST.montant|default:'5000000' }}" min="10000" required
+                               placeholder="Ex: 5 000 000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Durée (mois) *</label>
+                        <input type="number" name="duree" class="form-control"
+                               value="{{ request.POST.duree|default:'36' }}" min="1" max="360" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Taux d'intérêt annuel (%)</label>
+                        <input type="number" name="taux" class="form-control"
+                               value="{{ request.POST.taux|default:'15' }}" min="1" max="100" step="0.5">
+                    </div>
+                    <hr>
+                    <p class="text-muted small"><i class="bi bi-info-circle"></i> Optionnel — pour vérifier l'éligibilité</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Revenu mensuel (FCFA)</label>
+                        <input type="number" name="revenu" class="form-control"
+                               value="{{ request.POST.revenu|default:'0' }}" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Charges mensuelles (FCFA)</label>
+                        <input type="number" name="charges" class="form-control"
+                               value="{{ request.POST.charges|default:'0' }}" min="0">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-play-fill"></i> Simuler
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résultats -->
+    <div class="col-lg-7">
+        {% if resultat %}
+        <div class="card mb-4">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-graph-up-arrow"></i> Résultat de la Simulation
+            </div>
+            <div class="card-body">
+                <!-- Mensualité en gros -->
+                <div class="text-center p-4 mb-4" style="background: linear-gradient(135deg, #0d1b2a, #1b263b); border-radius: 16px; color: white;">
+                    <div class="small opacity-75 mb-1">Mensualité estimée</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #3a86ff;">
+                        {{ resultat.mensualite|floatformat:0 }} FCFA
+                    </div>
+                    <div class="small opacity-50">pendant {{ resultat.duree_mois }} mois</div>
+                </div>
+
+                <!-- Détails -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-3 text-center" style="background: #f0f4ff;">
+                            <div class="small text-muted">Montant emprunté</div>
+                            <div class="fw-bold fs-5" style="color: #1b263b;">{{ resultat.montant|floatformat:0 }} FCFA</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-3 text-center" style="background: #fff3e0;">
+                            <div class="small text-muted">Coût du crédit</div>
+                            <div class="fw-bold fs-5" style="color: #e65100;">{{ resultat.cout_credit|floatformat:0 }} FCFA</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-3 text-center" style="background: #fce4ec;">
+                            <div class="small text-muted">Coût total</div>
+                            <div class="fw-bold fs-5" style="color: #c62828;">{{ resultat.cout_total|floatformat:0 }} FCFA</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Éligibilité -->
+                {% if resultat.eligible is not None %}
+                <div class="alert {% if resultat.eligible %}alert-success{% else %}alert-danger{% endif %}">
+                    <i class="bi {% if resultat.eligible %}bi-check-circle{% else %}bi-x-circle{% endif %}"></i>
+                    {% if resultat.eligible %}
+                        <strong>Éligible !</strong> Le ratio d'endettement est de {{ resultat.ratio_endettement }}%
+                        (seuil max: 33%).
+                        Capacité de remboursement: {{ resultat.capacite_remboursement|floatformat:0 }} FCFA/mois.
+                    {% else %}
+                        <strong>Non éligible.</strong> Le ratio d'endettement est de {{ resultat.ratio_endettement }}%
+                        (dépasse le seuil de 33%).
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="small text-muted">Taux annuel</div>
+                        <div class="fw-semibold">{{ resultat.taux_annuel }}%</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small text-muted">Taux mensuel</div>
+                        <div class="fw-semibold">{{ resultat.taux_mensuel }}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tableau d'amortissement -->
+        {% if resultat.amortissement %}
+        <div class="card">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-table"></i> Tableau d'Amortissement (extrait)
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mois</th>
+                            <th>Mensualité</th>
+                            <th>Capital</th>
+                            <th>Intérêts</th>
+                            <th>Capital restant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in resultat.amortissement %}
+                        <tr>
+                            <td>{{ ligne.mois }}</td>
+                            <td>{{ ligne.mensualite|floatformat:0 }}</td>
+                            <td>{{ ligne.capital|floatformat:0 }}</td>
+                            <td>{{ ligne.interets|floatformat:0 }}</td>
+                            <td>{{ ligne.capital_restant|floatformat:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-calculator" style="font-size: 4rem; color: #415a77;"></i>
+                <h5 class="mt-3 text-muted">Entrez les paramètres et cliquez sur "Simuler"</h5>
+                <p class="text-muted">La simulation calcule la mensualité, le coût total du crédit et vérifie votre éligibilité.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+

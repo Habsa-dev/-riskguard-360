@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ client }} - RiskGuard 360{% endblock %}
+{% block page_title %}<i class="bi bi-person"></i> {{ client }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between">
+                <span>Informations Client</span>
+                <a href="{% url 'modifier_client' client.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Modifier
+                </a>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><td class="text-muted fw-semibold" style="width:40%;">Type</td><td>{{ client.get_type_client_display }}</td></tr>
+                    <tr><td class="text-muted fw-semibold">Nom</td><td>{{ client.nom }}</td></tr>
+                    <tr><td class="text-muted fw-semibold">Prénom</td><td>{{ client.prenom }}</td></tr>
+                    {% if client.numero_cni %}<tr><td class="text-muted fw-semibold">N° CNI</td><td>{{ client.numero_cni }}</td></tr>{% endif %}
+                    <tr><td class="text-muted fw-semibold">Profession</td><td>{{ client.get_profession_display }}</td></tr>
+                    <tr><td class="text-muted fw-semibold">Revenu mensuel</td><td class="fw-bold">{{ client.revenu_mensuel|floatformat:0 }} FCFA</td></tr>
+                    <tr><td class="text-muted fw-semibold">Charges</td><td>{{ client.charges_mensuelles|floatformat:0 }} FCFA</td></tr>
+                    <tr><td class="text-muted fw-semibold">Dettes</td><td>{{ client.dettes_existantes|floatformat:0 }} FCFA</td></tr>
+                    <tr><td class="text-muted fw-semibold">Ancienneté</td><td>{{ client.anciennete_emploi }} ans</td></tr>
+                    <tr><td class="text-muted fw-semibold">Incidents (12m)</td><td>{{ client.incidents_paiement }}</td></tr>
+                    <tr><td class="text-muted fw-semibold">Téléphone</td><td>{{ client.telephone }}</td></tr>
+                    <tr><td class="text-muted fw-semibold">Email</td><td>{{ client.email }}</td></tr>
+                    <tr><td class="text-muted fw-semibold">Créé le</td><td>{{ client.date_creation|date:"d/m/Y H:i" }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-folder2-open"></i> Dossiers de Prêt ({{ dossiers.count }})</span>
+                <a href="{% url 'creer_dossier' %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus"></i> Nouveau Dossier
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Référence</th>
+                                <th>Montant</th>
+                                <th>Score</th>
+                                <th>État</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dossier in dossiers %}
+                            <tr onclick="window.location='{% url 'detail_dossier' dossier.pk %}'" style="cursor:pointer;">
+                                <td class="fw-semibold">{{ dossier.reference }}</td>
+                                <td>{{ dossier.montant_demande|floatformat:0 }} FCFA</td>
+                                <td>
+                                    {% if dossier.score_risque %}
+                                    <span class="score-badge {% if dossier.score_risque >= 65 %}score-high{% elif dossier.score_risque >= 50 %}score-medium{% else %}score-low{% endif %}">
+                                        {{ dossier.score_risque|floatformat:0 }}/100
+                                    </span>
+                                    {% else %}—{% endif %}
+                                </td>
+                                <td><span class="badge rounded-pill etat-{{ dossier.etat }}">{{ dossier.get_etat_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-4 text-muted">Aucun dossier pour ce client.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

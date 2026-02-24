@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RiskGuard 360 — Système Intelligent d'Analyse de Risque</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0d1b2a;
+            --secondary: #1b263b;
+            --accent: #415a77;
+            --light-accent: #778da9;
+            --highlight: #e0e1dd;
+            --blue-accent: #3a86ff;
+        }
+        * { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(58,134,255,0.15) 0%, transparent 70%);
+            top: -100px; right: -100px;
+            border-radius: 50%;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(58,134,255,0.1) 0%, transparent 70%);
+            bottom: -50px; left: -50px;
+            border-radius: 50%;
+        }
+        .hero-content { position: relative; z-index: 10; }
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+        .hero .lead { font-size: 1.25rem; opacity: 0.85; }
+        .badge-glow {
+            background: rgba(58,134,255,0.2);
+            color: var(--blue-accent);
+            border: 1px solid rgba(58,134,255,0.3);
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        /* Feature Cards */
+        .feature-card {
+            border: none;
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+        }
+        .feature-icon {
+            width: 60px; height: 60px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Stats */
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* CTA */
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .btn-primary-custom {
+            background: var(--blue-accent);
+            border: none;
+            padding: 14px 32px;
+            font-weight: 600;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        .btn-primary-custom:hover {
+            background: #2e75e8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(58,134,255,0.3);
+        }
+        .btn-outline-custom {
+            border: 2px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 14px 32px;
+            font-weight: 600;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        .btn-outline-custom:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: white;
+            color: white;
+        }
+
+        .navbar-landing {
+            background: transparent !important;
+            transition: all 0.3s;
+        }
+        .navbar-landing.scrolled {
+            background: var(--primary) !important;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+
+        .workflow-step {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        .workflow-step .step-number {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: var(--blue-accent);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin: 0 auto 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-landing fixed-top py-3" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-4" href="#">
+            <i class="bi bi-shield-check" style="color: #3a86ff;"></i> RiskGuard 360
+        </a>
+        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto me-3">
+                <li class="nav-item"><a class="nav-link" href="#features">Fonctionnalités</a></li>
+                <li class="nav-item"><a class="nav-link" href="#workflow">Workflow</a></li>
+                <li class="nav-item"><a class="nav-link" href="#api">API</a></li>
+                <li class="nav-item"><a class="nav-link" href="#stats">Statistiques</a></li>
+            </ul>
+            <a href="{% url 'login' %}" class="btn btn-primary-custom text-white">
+                <i class="bi bi-box-arrow-in-right"></i> Connexion
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero d-flex align-items-center text-white">
+    <div class="container hero-content">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <span class="badge-glow d-inline-block mb-3">
+                    <i class="bi bi-lightning-charge-fill"></i> Fintech AI — Scoring Intelligent
+                </span>
+                <h1 class="mb-4">
+                    Analyse de Risque<br>
+                    <span style="color: #3a86ff;">Nouvelle Génération</span>
+                </h1>
+                <p class="lead mb-4">
+                    Automatisez l'évaluation du risque client avec notre moteur de scoring
+                    intelligent. Détection de fraude, analyse prédictive et workflow complet
+                    pour votre banque de micro-finance.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'login' %}" class="btn btn-primary-custom text-white">
+                        <i class="bi bi-rocket-takeoff"></i> Accéder à la plateforme
+                    </a>
+                    <a href="#features" class="btn btn-outline-custom">
+                        <i class="bi bi-arrow-down-circle"></i> Découvrir
+                    </a>
+                </div>
+                <div class="d-flex gap-4 mt-5">
+                    <div>
+                        <div class="fw-bold fs-4">< 2s</div>
+                        <div class="small opacity-75">Calcul du score</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold fs-4">99.2%</div>
+                        <div class="small opacity-75">Précision</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold fs-4">24/7</div>
+                        <div class="small opacity-75">Disponibilité</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-center">
+                <div class="p-4" style="background: rgba(255,255,255,0.05); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="p-3 mb-3" style="background: rgba(58,134,255,0.1); border-radius: 16px;">
+                        <div class="text-start small opacity-75 mb-2">Score de Risque Client</div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="font-size: 3rem; font-weight: 800; color: #3a86ff;">72</div>
+                            <div class="flex-grow-1">
+                                <div class="progress" style="height: 12px; border-radius: 6px;">
+                                    <div class="progress-bar" style="width: 72%; background: #3a86ff; border-radius: 6px;"></div>
+                                </div>
+                                <div class="small mt-1 opacity-75">Risque Faible — Éligible</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-2 text-start">
+                        <div class="col-6">
+                            <div class="p-2" style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+                                <div class="small opacity-50">Endettement</div>
+                                <div class="fw-bold" style="color: #66bb6a;">85/100</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2" style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+                                <div class="small opacity-50">Historique</div>
+                                <div class="fw-bold" style="color: #42a5f5;">75/100</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2" style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+                                <div class="small opacity-50">Stabilité</div>
+                                <div class="fw-bold" style="color: #ffa726;">62/100</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2" style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+                                <div class="small opacity-50">Fraude</div>
+                                <div class="fw-bold" style="color: #66bb6a;">5/100</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="py-5" style="background: #f8f9fa;">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold" style="color: var(--primary);">Fonctionnalités Puissantes</h2>
+            <p class="text-muted">Une plateforme complète pour gérer le risque bancaire</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon" style="background: rgba(58,134,255,0.1); color: #3a86ff;">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h5 class="fw-bold">Scoring Intelligent</h5>
+                    <p class="text-muted">Algorithme de scoring multi-critères avec pondérations : endettement, historique, stabilité, cohérence.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon" style="background: rgba(198,40,40,0.1); color: #c62828;">
+                        <i class="bi bi-shield-exclamation"></i>
+                    </div>
+                    <h5 class="fw-bold">Détection de Fraude</h5>
+                    <p class="text-muted">Score de fraude séparé du risque crédit. Détection d'incohérences, de comportements suspects et de doublons.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon" style="background: rgba(46,125,50,0.1); color: #2e7d32;">
+                        <i class="bi bi-lightbulb"></i>
+                    </div>
+                    <h5 class="fw-bold">Explainable AI</h5>
+                    <p class="text-muted">Justification textuelle automatique de chaque score. Transparence totale sur les facteurs de décision.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon" style="background: rgba(245,127,23,0.1); color: #f57f17;">
+                        <i class="bi bi-bar-chart-line"></i>
+                    </div>
+                    <h5 class="fw-bold">Dashboard Temps Réel</h5>
+                    <p class="text-muted">Visualisation graphique du portefeuille risque avec Chart.js. KPIs et alertes en temps réel.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon" style="background: rgba(156,39,176,0.1); color: #9c27b0;">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                    <h5 class="fw-bold">Rapports PDF Pro</h5>
+                    <p class="text-muted">Génération de rapports bancaires avec QR code d'authenticité, watermark et mise en page professionnelle.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon" style="background: rgba(0,150,136,0.1); color: #009688;">
+                        <i class="bi bi-braces"></i>
+                    </div>
+                    <h5 class="fw-bold">API REST Complète</h5>
+                    <p class="text-muted">API RESTful pour intégration avec vos systèmes existants. Documentation Swagger intégrée.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Workflow -->
+<section id="workflow" class="py-5">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold" style="color: var(--primary);">Workflow Intelligent</h2>
+            <p class="text-muted">Chaque dossier suit un cycle de vie contrôlé</p>
+        </div>
+        <div class="row g-3">
+            <div class="col">
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <h6 class="fw-bold">Soumis</h6>
+                    <p class="small text-muted">Le conseiller soumet le dossier</p>
+                </div>
+            </div>
+            <div class="col d-flex align-items-center justify-content-center">
+                <i class="bi bi-arrow-right fs-3 text-muted"></i>
+            </div>
+            <div class="col">
+                <div class="workflow-step">
+                    <div class="step-number" style="background: #ffa726;">2</div>
+                    <h6 class="fw-bold">En Analyse</h6>
+                    <p class="small text-muted">Le moteur calcule le score</p>
+                </div>
+            </div>
+            <div class="col d-flex align-items-center justify-content-center">
+                <i class="bi bi-arrow-right fs-3 text-muted"></i>
+            </div>
+            <div class="col">
+                <div class="workflow-step">
+                    <div class="step-number" style="background: #66bb6a;">3</div>
+                    <h6 class="fw-bold">Validé ✓</h6>
+                    <p class="small text-muted">Dossier approuvé</p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <span class="badge bg-danger px-3 py-2">
+                <i class="bi bi-exclamation-triangle"></i> Alerte Fraude → Dossier bloqué automatiquement
+            </span>
+        </div>
+    </div>
+</section>
+
+<!-- API Section -->
+<section id="api" class="py-5" style="background: var(--primary); color: white;">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="fw-bold mb-4">API REST Complète</h2>
+                <p class="opacity-75 mb-4">Intégrez notre moteur de scoring dans vos systèmes existants via notre API RESTful.</p>
+                <div class="d-flex flex-column gap-2">
+                    <code class="p-2 rounded" style="background: rgba(255,255,255,0.1);">POST /api/clients/ — Créer un client</code>
+                    <code class="p-2 rounded" style="background: rgba(255,255,255,0.1);">POST /api/dossiers/ — Soumettre un dossier</code>
+                    <code class="p-2 rounded" style="background: rgba(255,255,255,0.1);">POST /api/dossiers/{id}/calculer_score/ — Scorer</code>
+                    <code class="p-2 rounded" style="background: rgba(255,255,255,0.1);">GET  /api/score/{id}/ — Obtenir le score</code>
+                    <code class="p-2 rounded" style="background: rgba(255,255,255,0.1);">POST /api/simulation/ — Simuler un prêt</code>
+                    <code class="p-2 rounded" style="background: rgba(255,255,255,0.1);">GET  /api/portfolio-risk/ — Risque portefeuille</code>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+<pre style="color: #66bb6a; margin: 0; font-size: 0.85rem;"><code>{
+  "score_risque": 72.5,
+  "score_fraude": 12.0,
+  "niveau_risque": "Faible",
+  "explication": "Le score de 72.5/100 est favorable.
+    Le ratio d'endettement est maîtrisé à 28.3%",
+  "recommandation": "ACCORD DE PRINCIPE",
+  "alerte_fraude": false,
+  "facteurs_importants": [
+    {"facteur": "Historique", "impact": "très positif"},
+    {"facteur": "Stabilité", "impact": "positif"}
+  ]
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats -->
+<section id="stats" class="py-5" style="background: #f8f9fa;">
+    <div class="container py-5">
+        <div class="row text-center g-4">
+            <div class="col-md-3">
+                <div class="stat-number">4</div>
+                <div class="text-muted">Critères de Scoring</div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-number">6</div>
+                <div class="text-muted">Niveaux de Risque</div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-number">5</div>
+                <div class="text-muted">États Workflow</div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-number">∞</div>
+                <div class="text-muted">Intégrations API</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section py-5 text-white text-center">
+    <div class="container py-5">
+        <h2 class="fw-bold mb-3">Prêt à sécuriser vos prêts ?</h2>
+        <p class="opacity-75 mb-4">Connectez-vous pour accéder au dashboard et commencer l'analyse de vos dossiers.</p>
+        <a href="{% url 'login' %}" class="btn btn-primary-custom btn-lg text-white">
+            <i class="bi bi-rocket-takeoff"></i> Accéder à RiskGuard 360
+        </a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-4" style="background: var(--primary); color: rgba(255,255,255,0.5);">
+    <div class="container text-center">
+        <p class="mb-0">
+            <i class="bi bi-shield-check" style="color: #3a86ff;"></i>
+            RiskGuard 360 — &copy; 2026 — Système d'Analyse et de Scoring Risque Client
+        </p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+        const nav = document.getElementById('mainNav');
+        if (window.scrollY > 50) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+    });
+</script>
+</body>
+</html>
+
+
+
+
+
+

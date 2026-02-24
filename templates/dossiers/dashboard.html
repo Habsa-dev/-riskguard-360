@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - RiskGuard 360{% endblock %}
+{% block page_title %}<i class="bi bi-speedometer2"></i> Dashboard{% endblock %}
+
+{% block content %}
+<!-- Bannière Rôle -->
+<div class="alert border-0 mb-4 d-flex align-items-center gap-3" style="background: linear-gradient(135deg, #0d1b2a, #1b263b); color: white; border-radius: 12px;">
+    <div>
+        <i class="bi bi-{% if is_admin %}shield-lock{% elif is_manager %}eye{% elif is_gestionnaire %}wallet2{% else %}headset{% endif %}" style="font-size: 2rem; color: #3a86ff;"></i>
+    </div>
+    <div>
+        <div class="fw-bold" style="font-size: 1.1rem;">
+            Bienvenue, {{ user.get_full_name|default:user.username }}
+        </div>
+        <div class="small opacity-75">
+            {% if is_admin %}
+                Administrateur — Accès complet au système, gestion des utilisateurs et configuration
+            {% elif is_manager %}
+                Manager Risque — Vue globale, validation/refus des dossiers, alertes fraude, audit
+            {% elif is_gestionnaire %}
+                Gestionnaire de Compte — Portefeuille clients, informations financières
+            {% else %}
+                Conseiller Clientèle — Création clients/dossiers, suivi de vos dossiers
+            {% endif %}
+        </div>
+    </div>
+    <span class="badge ms-auto" style="background: #3a86ff; font-size: 0.85rem; padding: 8px 16px;">
+        {{ user_role|upper }}
+    </span>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="stat-card bg-gradient-blue">
+            <div class="stat-value">{{ data.total_dossiers }}</div>
+            <div class="stat-label">{% if is_manager or is_admin %}Total Dossiers{% else %}Mes Dossiers{% endif %}</div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="stat-card bg-gradient-green">
+            <div class="stat-value">{{ data.total_valides }}</div>
+            <div class="stat-label">Validés</div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="stat-card bg-gradient-orange">
+            <div class="stat-value">{{ data.score_moyen }}</div>
+            <div class="stat-label">Score Moyen</div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="stat-card bg-gradient-red">
+            <div class="stat-value">{{ data.alertes_fraude }}</div>
+            <div class="stat-label">Alertes Fraude</div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="stat-card bg-gradient-purple">
+            <div class="stat-value">{{ data.taux_approbation }}%</div>
+            <div class="stat-label">Taux Approbation</div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+        <div class="stat-card bg-gradient-teal">
+            <div class="stat-value">{{ data.total_refuses }}</div>
+            <div class="stat-label">Refusés</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-pie-chart"></i> Répartition par État
+            </div>
+            <div class="card-body">
+                <canvas id="chartEtats" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-bar-chart"></i> Distribution Risque
+            </div>
+            <div class="card-body">
+                <canvas id="chartRisque" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-graph-up"></i> Par Type de Prêt
+            </div>
+            <div class="card-body">
+                <canvas id="chartObjet" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions + Dossiers récents -->
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white fw-semibold">
+                <i class="bi bi-lightning"></i> Actions Rapides
+            </div>
+            <div class="card-body d-flex flex-column gap-2">
+                {% if is_conseiller or is_admin %}
+                <a href="{% url 'creer_client' %}" class="btn btn-outline-primary w-100 text-start">
+                    <i class="bi bi-person-plus"></i> Nouveau Client
+                </a>
+                <a href="{% url 'creer_dossier' %}" class="btn btn-outline-primary w-100 text-start">
+                    <i class="bi bi-folder-plus"></i> Nouveau Dossier
+                </a>
+                {% endif %}
+
+                {% if is_gestionnaire %}
+                <a href="{% url 'creer_client' %}" class="btn btn-outline-primary w-100 text-start">
+                    <i class="bi bi-person-plus"></i> Nouveau Client
+                </a>
+                <a href="{% url 'liste_clients' %}" class="btn btn-outline-primary w-100 text-start">
+                    <i class="bi bi-people"></i> Mon Portefeuille
+                </a>
+                {% endif %}
+
+                {% if is_manager %}
+                <a href="{% url 'liste_dossiers' %}?etat=en_analyse" class="btn btn-outline-warning w-100 text-start">
+                    <i class="bi bi-hourglass-split"></i> Dossiers En Analyse
+                </a>
+                <a href="{% url 'liste_dossiers' %}?etat=alerte_fraude" class="btn btn-outline-danger w-100 text-start">
+                    <i class="bi bi-exclamation-triangle"></i> Alertes Fraude
+                </a>
+                <a href="{% url 'liste_audits' %}" class="btn btn-outline-secondary w-100 text-start">
+                    <i class="bi bi-clock-history"></i> Logs d'Audit
+                </a>
+                {% endif %}
+
+                <a href="{% url 'simulation_pret' %}" class="btn btn-outline-primary w-100 text-start">
+                    <i class="bi bi-calculator"></i> Simulation de Prêt
+                </a>
+                <a href="{% url 'export_excel' %}" class="btn btn-outline-success w-100 text-start">
+                    <i class="bi bi-file-earmark-excel"></i> Export Excel
+                </a>
+
+                {% if is_admin %}
+                <a href="{% url 'admin:index' %}" class="btn btn-outline-dark w-100 text-start">
+                    <i class="bi bi-gear"></i> Administration Django
+                </a>
+                <a href="/api/" class="btn btn-outline-secondary w-100 text-start" target="_blank">
+                    <i class="bi bi-braces"></i> API REST
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if notifications %}
+        <div class="card mt-3">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between">
+                <span><i class="bi bi-bell"></i> Notifications</span>
+                <a href="{% url 'liste_notifications' %}" class="small">Tout voir</a>
+            </div>
+            <div class="card-body p-0">
+                {% for n in notifications %}
+                <div class="p-2 px-3 border-bottom d-flex align-items-center gap-2 small">
+                    <i class="bi bi-{% if n.type_notif == 'danger' %}exclamation-triangle text-danger{% elif n.type_notif == 'success' %}check-circle text-success{% else %}info-circle text-primary{% endif %}"></i>
+                    <span class="text-truncate">{{ n.titre }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history"></i> Dossiers Récents</span>
+                <a href="{% url 'liste_dossiers' %}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Référence</th>
+                                <th>Client</th>
+                                <th>Montant</th>
+                                <th>Score</th>
+                                <th>Fraude</th>
+                                <th>État</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in data.dossiers_recents %}
+                            <tr onclick="window.location='{% url 'detail_dossier' d.pk %}'" style="cursor:pointer;">
+                                <td class="fw-semibold">{{ d.reference }}</td>
+                                <td>{{ d.client }}</td>
+                                <td>{{ d.montant_demande|floatformat:0 }}</td>
+                                <td>
+                                    {% if d.score_risque %}
+                                    <span class="score-badge {% if d.score_risque >= 65 %}score-high{% elif d.score_risque >= 50 %}score-medium{% else %}score-low{% endif %}">
+                                        {{ d.score_risque|floatformat:0 }}/100
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if d.alerte_fraude %}
+                                    <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i></span>
+                                    {% else %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill etat-{{ d.etat }}">{{ d.get_etat_display }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-4 text-muted">Aucun dossier</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    new Chart(document.getElementById('chartEtats'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ etats_labels|safe }},
+            datasets: [{
+                data: {{ etats_data|safe }},
+                backgroundColor: ['#3a86ff', '#ffa726', '#66bb6a', '#ef5350', '#b71c1c'],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } } },
+            cutout: '65%',
+        }
+    });
+
+    new Chart(document.getElementById('chartRisque'), {
+        type: 'bar',
+        data: {
+            labels: {{ risque_labels|safe }},
+            datasets: [{
+                label: 'Dossiers',
+                data: {{ risque_data|safe }},
+                backgroundColor: ['#66bb6a', '#81c784', '#ffa726', '#ef5350', '#c62828', '#7b1fa2'],
+                borderRadius: 8,
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+
+    new Chart(document.getElementById('chartObjet'), {
+        type: 'polarArea',
+        data: {
+            labels: {{ objet_labels|safe }},
+            datasets: [{
+                data: {{ objet_data|safe }},
+                backgroundColor: [
+                    'rgba(58,134,255,0.7)', 'rgba(102,187,106,0.7)', 'rgba(255,167,38,0.7)',
+                    'rgba(239,83,80,0.7)', 'rgba(156,39,176,0.7)', 'rgba(0,150,136,0.7)',
+                    'rgba(121,85,72,0.7)', 'rgba(96,125,139,0.7)'
+                ],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true } } }
+        }
+    });
+</script>
+{% endblock %}

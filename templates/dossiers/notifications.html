@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Notifications - RiskGuard 360{% endblock %}
+{% block page_title %}<i class="bi bi-bell"></i> Notifications{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-0">
+        {% for notif in notifications %}
+        <div class="d-flex align-items-start p-3 border-bottom {% if not notif.lue %}bg-light{% endif %}">
+            <div class="me-3">
+                {% if notif.type_notif == 'danger' %}
+                <i class="bi bi-exclamation-triangle-fill text-danger fs-4"></i>
+                {% elif notif.type_notif == 'success' %}
+                <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                {% elif notif.type_notif == 'warning' %}
+                <i class="bi bi-exclamation-circle-fill text-warning fs-4"></i>
+                {% else %}
+                <i class="bi bi-info-circle-fill text-primary fs-4"></i>
+                {% endif %}
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between">
+                    <h6 class="mb-1 {% if not notif.lue %}fw-bold{% endif %}">{{ notif.titre }}</h6>
+                    <span class="text-muted small">{{ notif.date_creation|timesince }} ago</span>
+                </div>
+                <p class="mb-1 small text-muted">{{ notif.message|truncatewords:30 }}</p>
+                {% if not notif.lue %}
+                <a href="{% url 'marquer_notification_lue' notif.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-check"></i> Marquer comme lue
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-bell-slash fs-1"></i>
+            <p class="mt-2">Aucune notification.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+

@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block title %}{{ dossier.reference }} - RiskGuard 360{% endblock %}
+{% block page_title %}<i class="bi bi-folder2-open"></i> Dossier {{ dossier.reference }}{% endblock %}
+
+{% block content %}
+<!-- Barre d'actions -->
+<div class="d-flex gap-2 mb-4 flex-wrap align-items-center">
+    {% if dossier.etat in 'soumis,en_analyse' and not is_gestionnaire %}
+    <a href="{% url 'calculer_score' dossier.pk %}" class="btn btn-primary">
+        <i class="bi bi-cpu"></i> Calculer le Score
+    </a>
+    {% endif %}
+    <a href="{% url 'generer_pdf' dossier.pk %}" class="btn btn-outline-primary">
+        <i class="bi bi-file-earmark-pdf"></i> Rapport PDF
+    </a>
+    {% if dossier.alerte_fraude %}
+    <span class="btn btn-danger disabled"><i class="bi bi-exclamation-triangle"></i> ALERTE FRAUDE</span>
+    {% endif %}
+    <span class="badge bg-light text-dark ms-auto border" style="font-size: 0.85rem;">
+        <i class="bi bi-person-badge"></i> {{ user_role|title }}
+    </span>
+</div>
+
+<div class="row g-4">
+    <!-- Colonne gauche : Score + Workflow -->
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-body text-center py-4"
+                 style="background: linear-gradient(135deg, #0d1b2a, #1b263b); border-radius: 12px; color: white;">
+                <div class="small opacity-75 mb-1">Score de Risque</div>
+                {% if dossier.score_risque %}
+                <div style="font-size: 3rem; font-weight: 800; color: {% if dossier.score_risque >= 65 %}#66bb6a{% elif dossier.score_risque >= 50 %}#ffa726{% elif dossier.score_risque >= 35 %}#ef5350{% else %}#b71c1c{% endif %};">
+                    {{ dossier.score_risque|floatformat:0 }}/100
+                </div>
+                <div class="mb-2"><span class="badge bg-light text-dark">{{ dossier.niveau_risque }}</span></div>
+                <div class="small opacity-60">Score Fraude: <b>{{ dossier.score_fraude|floatformat:0|default:"—" }}/100</b></div>
+                {% else %}
+                <div style="font-size: 2rem; opacity: 0.5;">—</div>
+                <div class="small opacity-50">Non calculé</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Radar Chart -->
+        {% if dossier.score_risque %}
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-semibold small">
+                <i class="bi bi-pie-chart"></i> Radar des Critères
+            </div>
+            <div class="card-body">
+                <canvas id="radarChart" height="220"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Workflow — visible seulement pour Manager/Admin -->
+        {% if can_change_etat and dossier.transitions_possibles %}
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-semibold small">
+                <i class="bi bi-diagram-3"></i> Changer l'État
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <span class="badge rounded-pill etat-{{ dossier.etat }} fs-6">{{ dossier.get_etat_display }}</span>
+                </div>
+                <form method="post" action="{% url 'changer_etat' dossier.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <select name="nouvel_etat" class="form-select form-select-sm">
+                            {% for k, v in etat_form.fields.nouvel_etat.choices %}
+                            <option value="{{ k }}">{{ v }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="motif" class="form-control form-control-sm" rows="2" placeholder="Motif de la décision..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-warning w-100">
+                        <i class="bi bi-arrow-right-circle"></i> Valider / Refuser
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-semibold small">
+                <i class="bi bi-diagram-3"></i> État du Dossier
+            </div>
+            <div class="card-body text-center">
+                <span class="badge rounded-pill etat-{{ dossier.etat }} fs-6">{{ dossier.get_etat_display }}</span>
+                {% if not can_change_etat %}
+                <p class="text-muted small mt-2 mb-0">Seul le Manager Risque peut changer l'état.</p>
+                {% elif not dossier.transitions_possibles %}
+                <p class="text-muted small mt-2 mb-0">Aucune transition disponible.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Colonne droite : Détails -->
+    <div class="col-lg-8">
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-white fw-semibold small">
+                        <i class="bi bi-file-text"></i> Informations Dossier
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm mb-0">
+                            <tr><td class="text-muted" style="width:45%;">Objet</td><td>{{ dossier.get_objet_pret_display }}</td></tr>
+                            <tr><td class="text-muted">Montant</td><td class="fw-bold">{{ dossier.montant_demande|floatformat:0 }} FCFA</td></tr>
+                            <tr><td class="text-muted">Durée</td><td>{{ dossier.duree_mois }} mois</td></tr>
+                            <tr><td class="text-muted">Apport</td><td>{{ dossier.apport_personnel|floatformat:0 }} FCFA</td></tr>
+                            <tr><td class="text-muted">Soumis le</td><td>{{ dossier.date_soumission|date:"d/m/Y H:i" }}</td></tr>
+                            <tr><td class="text-muted">Conseiller</td><td>{{ dossier.conseiller }}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-white fw-semibold small">
+                        <i class="bi bi-person"></i> Client
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm mb-0">
+                            <tr><td class="text-muted" style="width:45%;">Nom</td><td><a href="{% url 'detail_client' dossier.client.pk %}">{{ dossier.client }}</a></td></tr>
+                            <tr><td class="text-muted">Profession</td><td>{{ dossier.client.get_profession_display }}</td></tr>
+                            <tr><td class="text-muted">Revenu</td><td>{{ dossier.client.revenu_mensuel|floatformat:0 }} FCFA</td></tr>
+                            <tr><td class="text-muted">Charges</td><td>{{ dossier.client.charges_mensuelles|floatformat:0 }} FCFA</td></tr>
+                            <tr><td class="text-muted">Dettes</td><td>{{ dossier.client.dettes_existantes|floatformat:0 }} FCFA</td></tr>
+                            <tr><td class="text-muted">Incidents</td><td>{{ dossier.client.incidents_paiement }}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Explication IA -->
+        {% if dossier.explication_score %}
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-semibold small">
+                <i class="bi bi-lightbulb"></i> Analyse Intelligente (Explainable AI)
+            </div>
+            <div class="card-body" style="background: #f8f9fa;">
+                {% for line in dossier.explication_score.splitlines %}
+                <p class="mb-1 small">{{ line }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recommandation -->
+        {% if dossier.recommandation %}
+        <div class="alert {% if dossier.score_risque >= 65 %}alert-success{% elif dossier.score_risque >= 50 %}alert-warning{% else %}alert-danger{% endif %}">
+            <i class="bi bi-info-circle"></i> <strong>Recommandation :</strong> {{ dossier.recommandation }}
+        </div>
+        {% endif %}
+
+        <!-- Pièces justificatives -->
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-semibold small d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-paperclip"></i> Pièces Justificatives ({{ pieces.count }})</span>
+            </div>
+            <div class="card-body">
+                {% for piece in pieces %}
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-file-earmark text-primary"></i>
+                    <span class="small">{{ piece.get_type_piece_display }} — {{ piece.nom_fichier }}</span>
+                    <a href="{{ piece.fichier.url }}" class="btn btn-sm btn-outline-primary ms-auto">
+                        <i class="bi bi-download"></i>
+                    </a>
+                </div>
+                {% empty %}
+                <p class="text-muted small mb-0">Aucune pièce.</p>
+                {% endfor %}
+
+                {% if can_edit %}
+                <hr>
+                <form method="post" action="{% url 'upload_piece' dossier.pk %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">{{ piece_form.type_piece }}</div>
+                        <div class="col-md-5">{{ piece_form.fichier }}</div>
+                        <div class="col-md-3">
+                            <button class="btn btn-sm btn-outline-primary w-100">
+                                <i class="bi bi-upload"></i> Upload
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Historique scoring -->
+        {% if resultats %}
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-semibold small">
+                <i class="bi bi-clock-history"></i> Historique Scoring
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr><th>Date</th><th>Score</th><th>Fraude</th><th>Niveau</th><th>Par</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for r in resultats %}
+                        <tr>
+                            <td class="small">{{ r.date_calcul|date:"d/m/Y H:i" }}</td>
+                            <td class="fw-bold">{{ r.score_global }}/100</td>
+                            <td>{{ r.score_fraude }}/100</td>
+                            <td>{{ r.niveau_risque }}</td>
+                            <td class="small">{{ r.calcule_par|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Journal d'audit (Manager/Admin uniquement) -->
+        {% if is_manager and audits %}
+        <div class="card">
+            <div class="card-header bg-white fw-semibold small">
+                <i class="bi bi-shield-check"></i> Journal d'Audit
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr><th>Date</th><th>Action</th><th>Description</th><th>Par</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for a in audits %}
+                        <tr>
+                            <td class="small text-muted">{{ a.date_action|date:"d/m/Y H:i" }}</td>
+                            <td><span class="badge bg-light text-dark">{{ a.get_action_display }}</span></td>
+                            <td class="small">{{ a.description|truncatewords:15 }}</td>
+                            <td class="small">{{ a.utilisateur|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if dossier.score_risque %}
+<script>
+    var radarData = {{ radar_data|safe }};
+    new Chart(document.getElementById('radarChart'), {
+        type: 'radar',
+        data: {
+            labels: ['Endettement', 'Historique', 'Stabilité', 'Cohérence'],
+            datasets: [{
+                label: 'Score',
+                data: [radarData.endettement, radarData.historique, radarData.stabilite, radarData.coherence],
+                backgroundColor: 'rgba(58, 134, 255, 0.15)',
+                borderColor: '#3a86ff',
+                borderWidth: 2,
+                pointBackgroundColor: '#3a86ff',
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20 } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}{{ titre }} - RiskGuard 360{% endblock %}
+{% block page_title %}<i class="bi bi-person-plus"></i> {{ titre }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Veuillez corriger les erreurs ci-dessous.
+                    </div>
+                    {% endif %}
+
+                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-info-circle"></i> Informations Générales</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Type de client *</label>
+                            {{ form.type_client }}
+                            {% if form.type_client.errors %}<div class="text-danger small">{{ form.type_client.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Nom *</label>
+                            {{ form.nom }}
+                            {% if form.nom.errors %}<div class="text-danger small">{{ form.nom.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Prénom</label>
+                            {{ form.prenom }}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Date de naissance</label>
+                            {{ form.date_naissance }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Téléphone *</label>
+                            {{ form.telephone }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">N° CNI</label>
+                            {{ form.numero_cni }}
+                            {% if form.numero_cni.errors %}<div class="text-danger small">{{ form.numero_cni.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Adresse</label>
+                        {{ form.adresse }}
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-briefcase"></i> Situation Professionnelle</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Profession *</label>
+                            {{ form.profession }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Revenu mensuel *</label>
+                            {{ form.revenu_mensuel }}
+                            {% if form.revenu_mensuel.errors %}<div class="text-danger small">{{ form.revenu_mensuel.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Charges mensuelles</label>
+                            {{ form.charges_mensuelles }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Dettes existantes</label>
+                            {{ form.dettes_existantes }}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Ancienneté (années)</label>
+                            {{ form.anciennete_emploi }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Incidents paiement (12m)</label>
+                            {{ form.incidents_paiement }}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-building"></i> Champs Entreprise</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Raison sociale</label>
+                            {{ form.raison_sociale }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">N° Registre Commerce</label>
+                            {{ form.numero_registre_commerce }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Secteur d'activité</label>
+                            {{ form.secteur_activite }}
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Chiffre d'affaires annuel</label>
+                            {{ form.chiffre_affaires_annuel }}
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Enregistrer
+                        </button>
+                        <a href="{% url 'liste_clients' %}" class="btn btn-outline-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
